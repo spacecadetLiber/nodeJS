@@ -1,0 +1,32 @@
+STATUS CODE IS: ,,HTTPVERSION IS: ,,METHOD IS: ,POST,RAW HEADERS ARE: ,,RAW TRAILERS ARE: ,,TIMEOUT IS: ,function (msecs, callback) {
+  if (callback) this.once('timeout', callback);
+
+  var self = this;
+  function emitTimeout() {
+    self.emit('timeout');
+  }
+
+  if (this.socket && this.socket.writable) {
+    if (this.timeoutCb)
+      this.socket.setTimeout(0, this.timeoutCb);
+    this.timeoutCb = emitTimeout;
+    this.socket.setTimeout(msecs, emitTimeout);
+    return this;
+  }
+
+  // Set timeoutCb so that it'll get cleaned up on request end
+  this.timeoutCb = emitTimeout;
+  if (this.socket) {
+    var sock = this.socket;
+    this.socket.once('connect', function() {
+      sock.setTimeout(msecs, emitTimeout);
+    });
+    return this;
+  }
+
+  this.once('socket', function(sock) {
+    sock.setTimeout(msecs, emitTimeout);
+  });
+
+  return this;
+},STATUS MESSAGE IS: ,,TRAILERS ARE: ,,URL IS: ,,OPTIONS ARE: ,[object Object]
